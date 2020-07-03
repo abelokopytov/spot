@@ -1,0 +1,138 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<style type="text/css">
+*
+{
+background-color:Black;
+color:DarkGray;
+}
+input:disabled
+{
+background-color:DarkGray;
+color:Black;
+}
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0px;
+  border: 0;
+  overflow: hidden; /*  Disable scrollbars */
+  display: block;  /* No floating content on sides */
+}
+</style>
+</HEAD>
+<BODY onLoad="opener.start_interacting();">
+<canvas id='myCanvas' width=100 height=100 style="border:0px; background:black;">
+This text is displayed if your browser does not support HTML5 Canvas.
+</canvas>
+</BODY>
+<SCRIPT LANGUAGE="JavaScript">
+<!-- Beginning of JavaScript -
+//initial values
+var canvas = null;
+var ctx = null;
+var canvasData = null;
+
+var radius = 40;
+var x = 200;
+var y = 200;
+
+var brightness = 0;
+
+function ColorDirection(r, g, b, brightness) {
+	this.r=r;
+    this.g=g;
+    this.b=b;
+    this.brightness = brightness;
+}
+
+var curColor = new ColorDirection(1,1,1, brightness);
+
+//###########################################################
+function setup() {
+	canvas = document.getElementById('myCanvas');
+	ctx = canvas.getContext('2d');
+    window.addEventListener('resize', resizeCanvas, false);
+    resizeCanvas();
+}
+//###########################################################
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
+    canvasData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+//	x = Math.round(canvas.width * 0.5);
+	x =radius +10;
+	y = Math.round(canvas.height * 0.5);
+	redraw();
+}
+//###########################################################
+function redraw() {
+    drawRing();
+}
+//###########################################################
+function drawPixel (x, y, color) {
+	if (x < 0) return;
+	if (x >= canvas.width) return;
+	if (y < 0) return;
+	if (y >= canvas.height) return;
+    var index = (x + y * canvas.width) * 4;
+    canvasData.data[index + 0] = color.r*brightness;
+    canvasData.data[index + 1] = color.g*brightness;
+    canvasData.data[index + 2] = color.b*brightness;
+    canvasData.data[index + 3] = 255;
+}
+//###########################################################
+function updateCanvas() {
+    ctx.putImageData(canvasData, 0, 0);
+}
+//###########################################################
+function drawFilledCircle (x0, y0, radius, color) { //integer math
+  var x = radius;
+  var y = 0;
+  var radiusError = 1 - x;
+  
+  while (x >= y) {
+    drawPixel( x + x0,  y + y0, color);
+    drawPixel( y + x0,  x + y0, color);
+    drawPixel(-x + x0,  y + y0, color);
+    drawPixel(-y + x0,  x + y0, color);
+    drawPixel(-x + x0, -y + y0, color);
+    drawPixel(-y + x0, -x + y0, color);
+    drawPixel( x + x0, -y + y0, color);
+    drawPixel( y + x0, -x + y0, color);
+    //filling
+	for (x1=x0-x; x1<=x0+x; x1++) {
+    	drawPixel( x1, y0+y, color);
+    	drawPixel( x1, y0-y, color);
+	}
+	for (x1=x0-y; x1<=x0+y; x1++) {
+    	drawPixel(x1, y0+x, color);
+    	drawPixel(x1, y0-x, color);
+	}
+    y++;
+    
+    if (radiusError < 0) {
+        radiusError += 2 * y + 1;
+    }
+    else {
+        x--;
+        radiusError += 2 * (y - x + 1);
+    }
+  }
+}
+//#############################################################
+function drawRing() {
+    drawFilledCircle(x, y, radius, curColor);
+	updateCanvas();
+} 
+//#############################################################
+function clearRing() {
+    drawFilledCircle(x, y, radius, 0);
+	updateCanvas();
+}
+//#############################################################
+// - End of JavaScript - -->
+</SCRIPT>
+</HTML>
