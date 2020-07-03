@@ -1,0 +1,234 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<meta 
+       name="viewport" 
+       content="target-densitydpi=device-dpi; width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" 
+/>
+<style type="text/css">
+*
+{
+background-color:Black;
+color:DarkGray;
+}
+input:disabled
+{
+background-color:DarkGray;
+color:Black;
+}
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0px;
+  border: 0;
+  overflow: hidden; /*  Disable scrollbars */
+  display: block;  /* No floating content on sides */
+}
+:-webkit-full-screen #myCanvas {/*WebKit, Opera 15+*/
+  width: 100%;
+  height: 100%;
+}
+:-moz-full-screen  #myCanvas {/*FireFox*/
+  width: 100%;
+  height: 100%;
+}
+:full-screen  #myCanvas {/*Opera 12.15-, Blink, w3c standard*/
+  width: 100%;
+  height: 100%;
+}
+</style>
+</HEAD>
+<BODY>
+<canvas id='myCanvas' width=640 height=480 style="border:0px; background:black;">
+This text is displayed if your browser does not support HTML5 Canvas.
+</canvas>
+</BODY>
+<SCRIPT LANGUAGE="JavaScript">
+<!-- Beginning of JavaScript -
+//initial values
+var canvas = null;
+var ctx = null;
+var canvasData = null;
+
+var radius = 110; //diameter=40mm
+//var radius = 55; //diameter=20mm
+
+var x = 320;
+var y = 240;
+
+var isFullScreen = false;
+var showNumbers = true;
+
+//###########################################################
+function myColor(r, g, b) {
+  this.r=r;
+  this.g=g;
+  this.b=b;
+}
+//###########################################################
+function myHSV(h, s, v) {
+	this.h=h;
+    this.s=s;
+    this.v=v;
+}
+//###########################################################
+
+var curColor = new myColor(120,120,120);
+var curHSV = new myHSV(180, 0.5, 0.5);
+
+//###########################################################
+function requestFullScreen(element) {
+  if(element.requestFullscreen) {
+    element.requestFullscreen();
+  } else if(element.webkitrequestFullscreen) {
+    element.webkitRequestFullscreen();
+  } else if(element.mozRequestFullscreen) {
+    element.mozRequestFullScreen();
+  }
+  isFullScreen = true;
+}
+//###########################################################
+function setup() {
+  canvas = document.getElementById('myCanvas');
+  ctx = canvas.getContext('2d');
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  canvas.addEventListener('mousemove', onMouseMove);
+  canvas.addEventListener('wheel', onMouseWheel);
+  canvas.addEventListener('click', onMouseClick);
+}
+//###########################################################
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvasData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+//  x = Math.round(canvas.width * 0.5);
+  x = Math.round(canvas.width) - radius - 10;
+  y = Math.round(canvas.height * 0.5);
+  reDraw();
+}
+//###########################################################
+function drawPixel (x, y, color) {
+  if (x < 0) return;
+  if (x >= canvas.width) return;
+  if (y < 0) return;
+  if (y >= canvas.height) return;
+  var index = (x + y * canvas.width) * 4;
+  canvasData.data[index + 0] = color.r;
+  canvasData.data[index + 1] = color.g;
+  canvasData.data[index + 2] = color.b;
+  canvasData.data[index + 3] = 255; // alpha
+}
+//###########################################################
+function updateCanvas() {
+  ctx.putImageData(canvasData, 0, 0);
+}
+//###########################################################
+function drawFilledCircle (x0, y0, radius, color) { //integer math
+  var x = radius;
+  var y = 0;
+  var radiusError = 1 - x;
+  
+  while (x >= y) {
+    drawPixel( x + x0,  y + y0, color);
+    drawPixel( y + x0,  x + y0, color);
+    drawPixel(-x + x0,  y + y0, color);
+    drawPixel(-y + x0,  x + y0, color);
+    drawPixel(-x + x0, -y + y0, color);
+    drawPixel(-y + x0, -x + y0, color);
+    drawPixel( x + x0, -y + y0, color);
+    drawPixel( y + x0, -x + y0, color);
+    //filling
+	for (x1=x0-x; x1<=x0+x; x1++) {
+    	drawPixel( x1, y0+y, color);
+    	drawPixel( x1, y0-y, color);
+	}
+	for (x1=x0-y; x1<=x0+y; x1++) {
+    	drawPixel(x1, y0+x, color);
+    	drawPixel(x1, y0-x, color);
+	}
+    y++;
+    
+    if (radiusError < 0) {
+        radiusError += 2 * y + 1;
+    }
+    else {
+        x--;
+        radiusError += 2 * (y - x + 1);
+    }
+  }
+}
+//#############################################################
+function drawRing() {
+  drawFilledCircle(x, y, radius, curColor);
+  updateCanvas();
+} 
+//#############################################################
+function clearRing() {
+  drawFilledCircle(x, y, radius, 0);
+  updateCanvas();
+}
+//#############################################################
+function mix(a, b, v) {
+    return (1-v)*a + v*b;
+}
+//#############################################################
+function HSVtoRGB(H, S, V) {
+//It expects 0<=H<=360, 0<=S<=1 and 0<=V<=1
+  var V2 = V * (1 - S);
+  var r  = ((H>=0 && H<=60) || (H>=300 && H<=360)) ? V : ((H>=120 && H<=240) ? V2 : ((H>=60 && H<=120) ? mix(V,V2,(H-60)/60) : ((H>=240 && H<=300) ? mix(V2,V,(H-240)/60) : 0)));
+  var g  = (H>=60 && H<=180) ? V : ((H>=240 && H<=360) ? V2 : ((H>=0 && H<=60) ? mix(V2,V,H/60) : ((H>=180 && H<=240) ? mix(V,V2,(H-180)/60) : 0)));
+  var b  = (H>=0 && H<=120) ? V2 : ((H>=180 && H<=300) ? V : ((H>=120 && H<=180) ? mix(V2,V,(H-120)/60) : ((H>=300 && H<=360) ? mix(V,V2,(H-300)/60) : 0)));
+  return {
+    r : Math.round(r * 255),
+    g : Math.round(g * 255),
+    b : Math.round(b * 255)
+  };
+}
+//#############################################################
+function reDraw() {
+  drawRing();
+  if (showNumbers) {
+    ctx.font = "40px Arial";
+    ctx.fillStyle = "gray";
+    ctx.fillText("H="+curHSV.h.toFixed(0)+"; S="+curHSV.s.toFixed(2)+"; V="+curHSV.v.toFixed(2), 10, 50);
+  }
+}
+//#############################################################
+function onMouseMove(e) {
+  posX = e.clientX;
+  posY = e.clientY;
+  curHSV.h = 360*posX/canvas.width - 30;
+  if (curHSV.h < 0) {
+     curHSV.h += 360
+  }
+  curHSV.s = posY/canvas.height;
+  curColor = HSVtoRGB(curHSV.h, curHSV.s, curHSV.v);
+  reDraw();
+}
+//#############################################################
+function onMouseWheel(e) {
+  var delta = e.deltaY || e.detail || e.wheelDelta;
+  curHSV.v -= 0.02*Math.sign(delta);
+  if (curHSV.v > 1.0) curHSV.v = 1.0;
+  if (curHSV.v < 0.0) curHSV.v = 0.0;
+  curColor = HSVtoRGB(curHSV.h, curHSV.s, curHSV.v);
+  reDraw();
+}
+//#############################################################
+function onMouseClick(e) {
+  if (!isFullScreen) {
+    requestFullScreen(canvas);
+  } else {
+     showNumbers = !showNumbers;
+     reDraw();
+  }
+}
+//#############################################################
+window.onload = setup();
+//#############################################################
+// - End of JavaScript - -->
+</SCRIPT>
+</HTML>
+
