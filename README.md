@@ -26,4 +26,7 @@ The only difference is the position of the stimulus near the right side of the s
 
 Test smartphone is connected to the notebook with WiFi.
 Test smertphone's screen is the extension of notebook screen with the help of the SpaceDesk driver (https://spacedesk.net/).
-The program
+The program spot4_4cm.html shoulf be run on the experimenter's notebook.
+Its child window then should be moved to the Test smertphone screen and changed to full-screen mode.
+In the case of foveal matching experimeter runs program variant spot4_4cm_left.html (it shows test stimulus at the left side of the smartphone screen).
+The program allows to select primary stimulus color (0 - Red, 1- Green; 2 - Blue), its brightness, start/stop flickering.
