@@ -6,6 +6,8 @@ other smartphone is called Test and can move along the arc (see Fig.1). Smartpho
 
 <p align="center">
 <img src="https://github.com/abelokopytov/spot/raw/master/figs/fig_1.png" width=50%>
+</p>
+<p align="center">
 Figure 1. General view of the experimental setup.
 </p>
 
