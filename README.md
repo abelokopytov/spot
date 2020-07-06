@@ -23,7 +23,8 @@ Left mouse click initially activate full screen mode, next clicks show/hide nume
 
 <p align="center">
 <img src="https://github.com/abelokopytov/spot/raw/master/figs/fig_2.png" width=50%>
-
+</p>
+<p align="center">
 Figure 2. Changing HSV values with mouse
 </p>
 
