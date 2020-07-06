@@ -17,7 +17,7 @@ The program shows stimulus (filled colored circle) at the center of the screen.
 Stimulus diameter is 40 mm for Galaxy S8 and can be changed by changing value of the "radius" variable.
 Left mouse click initially activate full screen mode, next clicks show/hide numerical HSV values at the top of the screen. 
 
-![Fig.2. Changing HSV with mouse](figs/fig_2.png)
+![Fig.2. Changing HSV with mouse](figs/fig_2.png){:height="50%" width="50%"}
 
 Figure 2. Changing HSV values with mouse
 
