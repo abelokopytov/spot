@@ -4,7 +4,7 @@ Software for peripheral vision experiments with two smartphones.
 One smartphone is called Checker and is placed in the center of the primeter arc,
 other smartphone is called Test and can move along the arc (see Fig.1). Smartphones are in "landscape" mode.
 
-![Fig.1 General view of the experiment setup](figs/fig_1.png)
+<img src="https://github.com/abelokopytov/spot/raw/master/figs/fig_1.png" width=50% align="center">
 
 Figure 1. General view of the experimental setup.
 
@@ -17,7 +17,7 @@ The program shows stimulus (filled colored circle) at the center of the screen.
 Stimulus diameter is 40 mm for Galaxy S8 and can be changed by changing value of the "radius" variable.
 Left mouse click initially activate full screen mode, next clicks show/hide numerical HSV values at the top of the screen. 
 
-<img src="https://github.com/abelokopytov/spot/raw/master/figs/fig_2.png" width=50%>
+<img src="https://github.com/abelokopytov/spot/raw/master/figs/fig_2.png" width=50% align="center">
 
 Figure 2. Changing HSV values with mouse
 
