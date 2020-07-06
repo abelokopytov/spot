@@ -5,7 +5,7 @@ One smartphone is called Checker and is placed in the center of the primeter arc
 other smartphone is called Test and can move along the arc (see Fig.1). Smartphones are in "landscape" mode.
 
 <p align="center">
-<img src="https://github.com/abelokopytov/spot/raw/master/figs/fig_1.png" width=50% align="center">
+<img src="https://github.com/abelokopytov/spot/raw/master/figs/fig_1.png" width=50%>
 
 Figure 1. General view of the experimental setup.
 </p>
@@ -21,7 +21,7 @@ Stimulus diameter is 40 mm for Galaxy S8 and can be changed by changing value of
 Left mouse click initially activate full screen mode, next clicks show/hide numerical HSV values at the top of the screen. 
 
 <p align="center">
-<img src="https://github.com/abelokopytov/spot/raw/master/figs/fig_2.png" width=50% align="center">
+<img src="https://github.com/abelokopytov/spot/raw/master/figs/fig_2.png" width=50%>
 
 Figure 2. Changing HSV values with mouse
 </p>
