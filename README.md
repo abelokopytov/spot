@@ -37,3 +37,9 @@ The program spot4_4cm.html shoulf be run on the experimenter's notebook.
 Its child window then should be moved to the Test smertphone screen and changed to full-screen mode.
 In the case of foveal matching experimeter runs program variant spot4_4cm_left.html (it shows test stimulus at the left side of the smartphone screen).
 The program allows to select primary stimulus color (0 - Red, 1- Green; 2 - Blue), its brightness, start/stop flickering.
+
+For the program to work one need to do 2 things:
+1. Allow pop-up windows
+2. For Firefox go to about:config and change the parameter
+"security.fileuri.strict_origin_policy" to "false"
+
