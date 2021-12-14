@@ -1,0 +1,281 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<style type="text/css">
+*
+{
+background-color:Black;
+color:DarkGray;
+}
+input:disabled
+{
+background-color:DarkGray;
+color:Black;
+}
+</style>
+</HEAD>
+<BODY>
+<br>
+<form name="myForm" action="" method="GET" id='myForm'>
+<table cellspacing="5" style="width:50%;height:50%;">
+<tr>
+<td valign="top" style="width:220px; border:1px solid gray">
+Circle:<br>
+Radius=<input align=right type="text" size=3 name="radius" id="radius" value="0" readonly="true"/>r/f<br>
+Brightness=<input type="text" size=3 name="brightness" id="brightness" value="0" readonly="true"/>
+b=+1; g=-1; n=+10; h=-10; m=255; j=100; k=0<br>
+X=<input type="text" size=3 name="x" id="x" value="0" readonly="true"/><br>
+Y=<input type="text" size=3 name="y" id="y" value="0" readonly="true"/><br>
+Interval=<input type="text" size="3" name="interval" id="interval" value="1500"  readonly="true">u/i<br>
+<p><span id="labelStart">Start</span> flicker s/s</p>
+<p>Color: <span id="colorName">White</span></p>
+</td>
+</tr>
+</table>
+</form>
+</BODY>
+<SCRIPT LANGUAGE="JavaScript">
+<!-- Beginning of JavaScript -
+//initial values
+//var radius = 230; //2 cm
+var radius = 460; //4 cm
+var brightness = 140;
+var lineWidth = 1;
+var canvas = null;
+var ctx = null;
+var canvasWidth = 0;
+var canvasHeight = 0;
+var canvasData = null;
+
+var flickerStarted = false;
+var drawPhase = 1;
+var interval = 1500 //ms, 62,5ms=1/16sec
+var myIntervalVar = null;
+
+function ColorDirection(r, g, b, brightness, colorName) {
+  this.r=r;
+  this.g=g;
+  this.b=b;
+  this.brightness = brightness;
+  this.colorName = colorName;
+}
+
+let colorWhite =  new ColorDirection(1,1,1, brightness, 'White');
+let colorRed =    new ColorDirection(1,0,0, brightness, 'Red');
+let colorGreen =  new ColorDirection(0,1,0, brightness, 'Green');
+let colorBlue  =  new ColorDirection(0,0,1, brightness, 'Blue');
+let colorYellow = new ColorDirection(1,1,0, brightness, 'Yellow');
+
+var curColor = colorRed;
+var cw = null; //child window
+var timerId = null;
+
+//###########################################################
+function start_interacting() {
+  cw.setup();
+  document.getElementById("x").value = cw.x;
+  document.getElementById("y").value = cw.y;
+  cw.radius = radius;
+  cw.curColor = curColor;
+  cw.brightness = brightness;
+  cw.drawRing();
+}
+//###########################################################
+function checkChildIsReady() {
+  if (cw.document.readyState === "complete") {
+    window.clearInterval(timerId);
+    start_interacting();
+    window.focus();
+  }
+}
+//###########################################################
+function setup() {
+  //setup Ui
+  document.getElementById("radius").value = radius;
+  document.getElementById("brightness").value = brightness;
+  document.getElementById("interval").value = interval;
+  document.getElementById("colorName").innerHTML = curColor.colorName;
+  cw = window.open('./spot_rgb_child_left.html', '_blank', 'location=1,status=1,scrollbars=1');	//open child window
+  timerId = window.setInterval(checkChildIsReady(), 20);
+}
+//#############################################################
+function drawPhases() {
+  if (drawPhase == 1) {
+    cw.drawRing();
+  } else {
+    cw.clearRing();
+  }
+  drawPhase = 1 - drawPhase;
+}
+//#############################################################
+function KeyCheck(e) {
+  var KeyID = (window.event) ? event.keyCode : e.keyCode;
+  switch(KeyID) {
+    case 37://"Arrow Left"
+      cw.clearRing();
+      cw.x--;
+      document.getElementById("x").value = cw.x;
+      cw.drawRing();
+      break;
+    case 39://"Arrow Right"
+      cw.clearRing();
+      cw.x++;
+      document.getElementById("x").value = cw.x;
+      cw.drawRing();
+      break;
+    case 38://"Arrow Up"
+      cw.clearRing();
+      cw.y--;
+      document.getElementById("y").value = cw.y;
+      cw.drawRing();
+      break;
+    case 40://"Arrow Down"
+      cw.clearRing();
+      cw.y++;
+      document.getElementById("y").value = cw.y;
+      cw.drawRing();
+      break;
+    case 82://"r" - increase radius
+      cw.clearRing();
+      cw.radius += 1;
+      document.getElementById("radius").value = cw.radius;
+      cw.drawRing();
+      break;
+    case 70://"f" - decrease radius
+      cw.clearRing();
+      if (cw.radius>0) cw.radius -= 1;
+      if (lineWidth > cw.radius) lineWidth = cw.radius;
+      document.getElementById("radius").value = cw.radius;
+      cw.drawRing();
+      break;
+    case 66://"b" - increase brightness +1
+      cw.clearRing();
+      if (brightness < 255) brightness++;
+      document.getElementById("brightness").value = brightness;
+      cw.brightness = brightness;
+      if (flickerStarted) {
+        if(drawPhase != 1) cw.drawRing();
+      } else cw.drawRing(); 
+      break;
+    case 78://"n" - increase brightness +10
+      cw.clearRing();
+      brightness += 10;
+      if (brightness > 255) brightness = 255;
+      document.getElementById("brightness").value = brightness;
+      cw.brightness = brightness;
+      if (flickerStarted) {
+        if(drawPhase != 1) cw.drawRing();
+      } else cw.drawRing(); 
+      break;
+    case 71://"g" - decrease brightness -1
+      cw.clearRing();
+      if (brightness > 0) brightness--;
+      document.getElementById("brightness").value = brightness;
+      cw.brightness = brightness;
+      if (flickerStarted) {
+        if(drawPhase != 1) cw.drawRing();
+      } else cw.drawRing(); 
+      break;
+    case 72://"h" - decrease brightness -10
+      cw.clearRing();
+      brightness -= 10;
+      if (brightness < 0) brightness = 0;
+      document.getElementById("brightness").value = brightness;
+      cw.brightness = brightness;
+      if (flickerStarted) {
+        if(drawPhase != 1) cw.drawRing();
+      } else cw.drawRing(); 
+      break;
+    case 77://"m" - set brightness = 255
+      cw.clearRing();
+      brightness = 255;
+      document.getElementById("brightness").value = brightness;
+      cw.brightness = brightness;
+      if (flickerStarted) {
+        if(drawPhase != 1) cw.drawRing();
+      } else cw.drawRing(); 
+      break;
+    case 74://"j" - set brightness = 100
+      cw.clearRing();
+      brightness = 100;
+      document.getElementById("brightness").value = brightness;
+      cw.brightness = brightness;
+      if (flickerStarted) {
+        if(drawPhase != 1) cw.drawRing();
+      } else cw.drawRing(); 
+      break;
+    case 75://"k" - set brightness = 0
+      cw.clearRing();
+      brightness = 0;
+      document.getElementById("brightness").value = brightness;
+      cw.brightness = brightness;
+      if (flickerStarted) {
+        if(drawPhase != 1) cw.drawRing();
+      } else cw.drawRing(); 
+      break;
+    case 85: //"u"
+      interval += 10;
+      document.getElementById("interval").value = interval;
+      break;
+    case 73: //"i"
+      if (interval>=10) interval-= 10;
+      document.getElementById("interval").value = interval;
+    break;
+    case 48: //0 - White
+      cw.clearRing();
+      curColor = colorWhite;
+      cw.curColor = curColor;
+      cw.drawRing();
+      document.getElementById("colorName").innerHTML = curColor.colorName;
+      break;
+    case 49: //1 - Red
+      cw.clearRing();
+      curColor = colorRed;
+      cw.curColor = curColor;
+      cw.drawRing();
+      document.getElementById("colorName").innerHTML = curColor.colorName;
+      break;
+    case 50: //2 - Green
+      cw.clearRing();
+      curColor = colorGreen;
+      cw.curColor = curColor;
+      cw.drawRing();
+      document.getElementById("colorName").innerHTML = curColor.colorName;
+      break;
+    case 51: //3 - Blue
+      cw.clearRing();
+      curColor = colorBlue;
+      cw.curColor = curColor;
+      cw.drawRing();
+      document.getElementById("colorName").innerHTML = curColor.colorName;
+      break;
+    case 52: //4 - Yellow
+      cw.clearRing();
+      curColor = colorYellow;
+      cw.curColor = curColor;
+      cw.drawRing();
+      document.getElementById("colorName").innerHTML = curColor.colorName;
+      break;
+    case 83: //'s','S' - start or stop flicker
+      if (flickerStarted) {
+        clearInterval(myIntervalVar);
+        flickerStarted = false;
+        document.getElementById("labelStart").innerHTML = "Start";
+        cw.drawRing();
+      } else {
+        interval = Number(document.getElementById("interval").value);
+        myIntervalVar = setInterval(function(){drawPhases()}, interval);
+        flickerStarted = true;
+        document.getElementById("labelStart").innerHTML = "Stop";
+      }	
+      break;
+    }
+}
+
+//document.onkeyup = KeyCheck; //no auto repeat
+document.onkeydown = KeyCheck; // auto repeat
+window.onload = setup();
+// - End of JavaScript - -->
+</SCRIPT>
+</HTML>

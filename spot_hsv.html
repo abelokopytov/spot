@@ -1,0 +1,402 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<style type="text/css">
+*
+{
+background-color:Black;
+color:DarkGray;
+}
+input:disabled
+{
+background-color:DarkGray;
+color:Black;
+}
+</style>
+</HEAD>
+<BODY>
+<br>
+<form name="myForm" action="" method="GET" id='myForm'>
+<table cellspacing="5" style="width:50%;height:50%;">
+<tr>
+<td valign="top" style="width:220px; border:1px solid gray">
+Circle:<br>
+Radius=<input align=right type="text" size=3 name="radius" id="radius" value="0" readonly="true"/>r/f<br>
+H=<input type="text" size=5 name="H" id="H" value="0" readonly="true"/><br>
+S=<input type="text" size=5 name="S" id="S" value="1.0" readonly="true"/>m=+0.1; n=-0.1; k=0.5; l=1.0;<br>
+V=<input type="text" size=5 name="V" id="V" value="1.0" readonly="true"/>b=+0.1; g=-0.1; h=0.5; j=1.0; k=0<br>
+RGB=<input type="text" size=3 name="R" id="R" value="0" readonly="true"/>;
+<input type="text" size=3 name="G" id="G" value="0" readonly="true"/>;
+<input type="text" size=3 name="B" id="B" value="0" readonly="true"/><br>
+X=<input type="text" size=3 name="x" id="x" value="0" readonly="true"/><br>
+Y=<input type="text" size=3 name="y" id="y" value="0" readonly="true"/><br>
+Interval=<input type="text" size="3" name="interval" id="interval" value="1500"  readonly="true">u/i<br>
+<p><span id="labelStart">Start</span> flicker s/s</p>
+<p>Color: <span id="colorName">White</span></p>
+</td>
+</tr>
+</table>
+</form>
+</BODY>
+<SCRIPT LANGUAGE="JavaScript">
+<!-- Beginning of JavaScript -
+//initial values
+//var radius = 230; //2 cm
+var radius = 460; //4 cm
+var lineWidth = 1;
+var canvas = null;
+var ctx = null;
+var canvasWidth = 0;
+var canvasHeight = 0;
+var canvasData = null;
+
+var flickerStarted = false;
+var drawPhase = 1;
+var interval = 1500 //ms, 62,5ms=1/16sec
+var myIntervalVar = null;
+//#############################################################
+function mix(a, b, v) {
+    return (1-v)*a + v*b;
+}
+//#############################################################
+function HSVtoRGB(H, S, V) {
+//It expects 0<=H<=360, 0<=S<=1 and 0<=V<=1
+  var V2 = V * (1 - S);
+  var r  = ((H>=0 && H<=60) || (H>=300 && H<=360)) ? V : ((H>=120 && H<=240) ? V2 : ((H>=60 && H<=120) ? mix(V,V2,(H-60)/60) : ((H>=240 && H<=300) ? mix(V2,V,(H-240)/60) : 0)));
+  var g  = (H>=60 && H<=180) ? V : ((H>=240 && H<=360) ? V2 : ((H>=0 && H<=60) ? mix(V2,V,H/60) : ((H>=180 && H<=240) ? mix(V,V2,(H-180)/60) : 0)));
+  var b  = (H>=0 && H<=120) ? V2 : ((H>=180 && H<=300) ? V : ((H>=120 && H<=180) ? mix(V2,V,(H-120)/60) : ((H>=300 && H<=360) ? mix(V,V2,(H-300)/60) : 0)));
+  return {
+    r : Math.round(r * 255),
+    g : Math.round(g * 255),
+    b : Math.round(b * 255)
+  };
+}
+//################################
+function myHSVColor(h, s, v, colorName) {
+  this.h=h;
+  this.s=s;
+  this.v=v;
+  this.colorName = colorName;
+}
+function myRGBColor(r, g, b) {
+  this.r=g;
+  this.g=g;
+  this.b=b;
+}
+//################################
+let hsvWhite =  new myHSVColor(0, 0.0, 1, 'White');
+let hsvRed =    new myHSVColor(0, 1.0, 1.0, 'Red');
+let hsvGreen =  new myHSVColor(120, 1.0, 1.0, 'Green');
+let hsvBlue  =  new myHSVColor(240, 1.0, 1.0, 'Blue');
+let hsvYellow = new myHSVColor(60, 1.0, 1.0, 'Yellow');
+
+var curHSVColor = hsvRed;
+var H = curHSVColor.h
+var S = curHSVColor.s
+var V = curHSVColor.v
+var curRGBColor = HSVtoRGB(curHSVColor.h, curHSVColor.s, curHSVColor.v);
+
+var cw = null; //child window
+var timerId = null;
+
+//###########################################################
+function start_interacting() {
+  cw.setup();
+  document.getElementById("x").value = cw.x;
+  document.getElementById("y").value = cw.y;
+  cw.radius = radius;
+  curRGBColor = HSVtoRGB(curHSVColor.h, curHSVColor.s, curHSVColor.v);
+  cw.curRGBColor = curRGBColor;
+  cw.drawRing();
+}
+//###########################################################
+function checkChildIsReady() {
+  if (cw.document.readyState === "complete") {
+    window.clearInterval(timerId);
+    start_interacting();
+    window.focus();
+  }
+}
+//###########################################################
+function setup() {
+  //setup Ui
+  document.getElementById("radius").value = radius;
+  document.getElementById("H").value = H;
+  document.getElementById("S").value = S;
+  document.getElementById("V").value = V;
+  document.getElementById("R").value = curRGBColor.r;
+  document.getElementById("G").value = curRGBColor.g;
+  document.getElementById("B").value = curRGBColor.b;
+
+  document.getElementById("interval").value = interval;
+  document.getElementById("colorName").innerHTML = curHSVColor.colorName;
+  cw = window.open('./spot_hsv_child.html', '_blank', 'location=1,status=1,scrollbars=1');	//open child window
+  timerId = window.setInterval(checkChildIsReady(), 20);
+}
+//#############################################################
+function drawPhases() {
+  if (drawPhase == 1) {
+    cw.drawRing();
+  } else {
+    cw.clearRing();
+  }
+  drawPhase = 1 - drawPhase;
+}
+//#############################################################
+function KeyCheck(e) {
+  var KeyID = (window.event) ? event.keyCode : e.keyCode;
+  switch(KeyID) {
+    case 37://"Arrow Left"
+      cw.clearRing();
+      cw.x--;
+      document.getElementById("x").value = cw.x;
+      cw.drawRing();
+      break;
+    case 39://"Arrow Right"
+      cw.clearRing();
+      cw.x++;
+      document.getElementById("x").value = cw.x;
+      cw.drawRing();
+      break;
+    case 38://"Arrow Up"
+      cw.clearRing();
+      cw.y--;
+      document.getElementById("y").value = cw.y;
+      cw.drawRing();
+      break;
+    case 40://"Arrow Down"
+      cw.clearRing();
+      cw.y++;
+      document.getElementById("y").value = cw.y;
+      cw.drawRing();
+      break;
+    case 82://"r" - increase radius
+      cw.clearRing();
+      cw.radius += 1;
+      document.getElementById("radius").value = cw.radius;
+      cw.drawRing();
+      break;
+    case 70://"f" - decrease radius
+      cw.clearRing();
+      if (cw.radius>0) cw.radius -= 1;
+      if (lineWidth > cw.radius) lineWidth = cw.radius;
+      document.getElementById("radius").value = cw.radius;
+      cw.drawRing();
+      break;
+    case 66://"b" - increase V +0.1
+      cw.clearRing();
+      V += 0.1;
+      if (V > 1.0) V = 1.0;
+      curHSVColor.v = V;
+      curRGBColor = HSVtoRGB(curHSVColor.h, curHSVColor.s, curHSVColor.v);
+      document.getElementById("V").value = V;
+      document.getElementById("R").value = curRGBColor.r;
+      document.getElementById("G").value = curRGBColor.g;
+      document.getElementById("B").value = curRGBColor.b;
+      cw.curRGBColor = curRGBColor;
+      if (flickerStarted) {
+        if(drawPhase != 1) cw.drawRing();
+      } else cw.drawRing(); 
+      break;
+    case 71://"g" - decrease V -0.1
+      cw.clearRing();
+      V -= 0.1;
+      if (V < 0.0) V = 0.0;
+      curHSVColor.v = V;
+      curRGBColor = HSVtoRGB(curHSVColor.h, curHSVColor.s, curHSVColor.v);
+      document.getElementById("V").value = V;
+      document.getElementById("R").value = curRGBColor.r;
+      document.getElementById("G").value = curRGBColor.g;
+      document.getElementById("B").value = curRGBColor.b;
+      cw.curRGBColor = curRGBColor;
+      if (flickerStarted) {
+        if(drawPhase != 1) cw.drawRing();
+      } else cw.drawRing(); 
+      break;
+    case 72://"h" - set V=0.5
+      cw.clearRing();
+      V = 0.5;
+      curHSVColor.v = V;
+      curRGBColor = HSVtoRGB(curHSVColor.h, curHSVColor.s, curHSVColor.v);
+      document.getElementById("V").value = V;
+      document.getElementById("R").value = curRGBColor.r;
+      document.getElementById("G").value = curRGBColor.g;
+      document.getElementById("B").value = curRGBColor.b;
+      cw.curRGBColor = curRGBColor;
+      if (flickerStarted) {
+        if(drawPhase != 1) cw.drawRing();
+      } else cw.drawRing(); 
+      break;
+    case 74://"j" - set V=1.0
+      cw.clearRing();
+      V = 1.0;
+      curHSVColor.v = V;
+      curRGBColor = HSVtoRGB(curHSVColor.h, curHSVColor.s, curHSVColor.v);
+      document.getElementById("V").value = V;
+      document.getElementById("R").value = curRGBColor.r;
+      document.getElementById("G").value = curRGBColor.g;
+      document.getElementById("B").value = curRGBColor.b;
+      cw.curRGBColor = curRGBColor;
+      if (flickerStarted) {
+        if(drawPhase != 1) cw.drawRing();
+      } else cw.drawRing(); 
+      break;
+    case 77://"m" - increase S +0.1
+      cw.clearRing();
+      S += 0.1;
+      if (S > 1.0) S = 1.0;
+      curHSVColor.s = S;
+      curRGBColor = HSVtoRGB(curHSVColor.h, curHSVColor.s, curHSVColor.v);
+      document.getElementById("S").value = S;
+      document.getElementById("R").value = curRGBColor.r;
+      document.getElementById("G").value = curRGBColor.g;
+      document.getElementById("B").value = curRGBColor.b;
+      cw.curRGBColor = curRGBColor;
+      if (flickerStarted) {
+        if(drawPhase != 1) cw.drawRing();
+      } else cw.drawRing(); 
+      break;
+    case 78://"n" - decrease S +0.1
+      cw.clearRing();
+      S -= 0.1;
+      if (S < 0.0) S = 0.0;
+      curHSVColor.s = S;
+      curRGBColor = HSVtoRGB(curHSVColor.h, curHSVColor.s, curHSVColor.v);
+      document.getElementById("S").value = S;
+      document.getElementById("R").value = curRGBColor.r;
+      document.getElementById("G").value = curRGBColor.g;
+      document.getElementById("B").value = curRGBColor.b;
+      cw.curRGBColor = curRGBColor;
+      if (flickerStarted) {
+        if(drawPhase != 1) cw.drawRing();
+      } else cw.drawRing(); 
+      break;
+    case 75://"k" - set S=0.5
+      cw.clearRing();
+      S = 0.5;
+      curHSVColor.s = S;
+      curRGBColor = HSVtoRGB(curHSVColor.h, curHSVColor.s, curHSVColor.v);
+      document.getElementById("S").value = S;
+      document.getElementById("R").value = curRGBColor.r;
+      document.getElementById("G").value = curRGBColor.g;
+      document.getElementById("B").value = curRGBColor.b;
+      cw.curRGBColor = curRGBColor;
+      if (flickerStarted) {
+        if(drawPhase != 1) cw.drawRing();
+      } else cw.drawRing(); 
+      break;
+    case 76://"l" - set S=1.0
+      cw.clearRing();
+      S = 1.0;
+      curHSVColor.s = S;
+      curRGBColor = HSVtoRGB(curHSVColor.h, curHSVColor.s, curHSVColor.v);
+      document.getElementById("S").value = S;
+      document.getElementById("R").value = curRGBColor.r;
+      document.getElementById("G").value = curRGBColor.g;
+      document.getElementById("B").value = curRGBColor.b;
+      cw.curRGBColor = curRGBColor;
+      if (flickerStarted) {
+        if(drawPhase != 1) cw.drawRing();
+      } else cw.drawRing(); 
+      break;
+    case 85: //"u"
+      interval += 10;
+      document.getElementById("interval").value = interval;
+      break;
+    case 73: //"i"
+      if (interval>=10) interval-= 10;
+      document.getElementById("interval").value = interval;
+    break;
+    case 48: //0 - White
+      cw.clearRing();
+      curHSVColor = hsvWhite;
+      curHSVColor.s = S
+      curHSVColor.v = V
+      document.getElementById("H").value = curHSVColor.h;
+      curRGBColor = HSVtoRGB(curHSVColor.h, curHSVColor.s, curHSVColor.v);
+      document.getElementById("R").value = curRGBColor.r;
+      document.getElementById("G").value = curRGBColor.g;
+      document.getElementById("B").value = curRGBColor.b;
+      cw.curRGBColor = curRGBColor;
+      cw.drawRing();
+      document.getElementById("colorName").innerHTML = curHSVColor.colorName;
+      break;
+    case 49: //1 - Red
+      cw.clearRing();
+      curHSVColor = hsvRed;
+      curHSVColor.s = S
+      curHSVColor.v = V
+      document.getElementById("H").value = curHSVColor.h;
+      curRGBColor = HSVtoRGB(curHSVColor.h, curHSVColor.s, curHSVColor.v);
+      document.getElementById("R").value = curRGBColor.r;
+      document.getElementById("G").value = curRGBColor.g;
+      document.getElementById("B").value = curRGBColor.b;
+      cw.curRGBColor = curRGBColor;
+      cw.drawRing();
+      document.getElementById("colorName").innerHTML = curHSVColor.colorName;
+      break;
+    case 50: //2 - Green
+      cw.clearRing();
+      curHSVColor = hsvGreen;
+      curHSVColor.s = S
+      curHSVColor.v = V
+      document.getElementById("H").value = curHSVColor.h;
+      curRGBColor = HSVtoRGB(curHSVColor.h, curHSVColor.s, curHSVColor.v);
+      document.getElementById("R").value = curRGBColor.r;
+      document.getElementById("G").value = curRGBColor.g;
+      document.getElementById("B").value = curRGBColor.b;
+      cw.curRGBColor = curRGBColor;
+      cw.drawRing();
+      document.getElementById("colorName").innerHTML = curHSVColor.colorName;
+      break;
+    case 51: //3 - Blue
+      cw.clearRing();
+      curHSVColor = hsvBlue;
+      curHSVColor.s = S
+      curHSVColor.v = V
+      document.getElementById("H").value = curHSVColor.h;
+      curRGBColor = HSVtoRGB(curHSVColor.h, curHSVColor.s, curHSVColor.v);
+      document.getElementById("R").value = curRGBColor.r;
+      document.getElementById("G").value = curRGBColor.g;
+      document.getElementById("B").value = curRGBColor.b;
+      cw.curRGBColor = curRGBColor;
+      cw.drawRing();
+      document.getElementById("colorName").innerHTML = curHSVColor.colorName;
+      break;
+    case 52: //4 - Yellow
+      cw.clearRing();
+      curHSVColor = hsvYellow;
+      curHSVColor.s = S
+      curHSVColor.v = V
+      document.getElementById("H").value = curHSVColor.h;
+      curRGBColor = HSVtoRGB(curHSVColor.h, curHSVColor.s, curHSVColor.v);
+      document.getElementById("R").value = curRGBColor.r;
+      document.getElementById("G").value = curRGBColor.g;
+      document.getElementById("B").value = curRGBColor.b;
+      cw.curRGBColor = curRGBColor;
+      cw.drawRing();
+      document.getElementById("colorName").innerHTML = curHSVColor.colorName;
+      break;
+    case 83: //'s','S' - start or stop flicker
+      if (flickerStarted) {
+        clearInterval(myIntervalVar);
+        flickerStarted = false;
+        document.getElementById("labelStart").innerHTML = "Start";
+        cw.drawRing();
+      } else {
+        interval = Number(document.getElementById("interval").value);
+        myIntervalVar = setInterval(function(){drawPhases()}, interval);
+        flickerStarted = true;
+        document.getElementById("labelStart").innerHTML = "Stop";
+      }	
+      break;
+    }
+}
+
+//document.onkeyup = KeyCheck; //no auto repeat
+document.onkeydown = KeyCheck; // auto repeat
+window.onload = setup();
+// - End of JavaScript - -->
+</SCRIPT>
+</HTML>
