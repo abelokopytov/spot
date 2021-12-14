@@ -1,8 +1,9 @@
 # spot
 Software for peripheral vision experiments with two smartphones.
 
-One smartphone is called Checker and is placed in the center of the primeter arc,
-other smartphone is called Test and can move along the arc (see Fig.1). Smartphones are in "landscape" mode.
+Both smartphones are Samsung Galaxy S8.
+One smartphone is called Checker ("Central") and is placed in the center of the primeter arc,
+other smartphone is called Test ("Periph") and can move along the arc (see Fig.1). Smartphones are in "landscape" mode.
 
 <p align="center">
 <img src="https://github.com/abelokopytov/spot/raw/master/figs/fig_1.png" width=50%>
@@ -10,9 +11,6 @@ other smartphone is called Test and can move along the arc (see Fig.1). Smartpho
 <p align="center">
 Figure 1. General view of the experimental setup.
 </p>
-
-
-Both smartphones are Samsung Galaxy S8.
 
 The program hsv_40mm_center.html should be opened with web browser (e.g. Chrome) on the Checker smartphone.
 This program allows subject to change HSV values with mouse according to Fig.2.
@@ -33,9 +31,9 @@ The only difference is the position of the stimulus near the right side of the s
 
 Test smartphone is connected to the notebook with WiFi.
 Test smertphone's screen is the extension of notebook screen with the help of the SpaceDesk driver (https://spacedesk.net/).
-The program spot4_4cm.html shoulf be run on the experimenter's notebook.
-Its child window then should be moved to the Test smertphone screen and changed to full-screen mode.
-In the case of foveal matching experimeter runs program variant spot4_4cm_left.html (it shows test stimulus at the left side of the smartphone screen).
+The program spot_rgb.html or spot_hsv.html should be run on the experimenter's notebook.
+It's child window then should be moved to the Test smartphone screen and changed to full-screen mode.
+In the case of foveal matching experimeter runs variant of the program called spot_rgb_left.html (it shows test stimulus at the left side of the smartphone screen).
 The program allows to select primary stimulus color (0 - Red, 1- Green; 2 - Blue), its brightness, start/stop flickering.
 
 For the program to work one need to do 2 things:
