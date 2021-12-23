@@ -1,9 +1,11 @@
 # spot
 Software for peripheral vision experiments with two smartphones.
+Smartphone's display characterization is in the file DisplayCharacterization.xlsx
 
 Both smartphones are Samsung Galaxy S8.
 One smartphone is called Checker ("Central") and is placed in the center of the primeter arc,
-other smartphone is called Test ("Periph") and can move along the arc (see Fig.1). Smartphones are in "landscape" mode.
+other smartphone is called Test ("Periph") and can move along the arc (see Fig.1).
+Smartphones are in "landscape" mode.
 
 <p align="center">
 <img src="https://github.com/abelokopytov/spot/raw/master/figs/fig_1.png" width=50%>
