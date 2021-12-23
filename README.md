@@ -1,5 +1,6 @@
 # spot
 Software for peripheral vision experiments with two smartphones.
+
 Smartphone's display characterization is in the file DisplayCharacterization.xlsx
 
 Both smartphones are Samsung Galaxy S8.
